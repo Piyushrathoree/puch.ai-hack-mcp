@@ -386,3 +386,4 @@ python scripts/load_test.py
 ---
 
 **⭐ Star this repo if it helps you build amazing medical AI assistants!**
+# puch.ai-hack-mcp
