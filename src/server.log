@@ -55,3 +55,11 @@ INFO:     127.0.0.1:45578 - "POST /mcp HTTP/1.1" 200 OK
 INFO:     127.0.0.1:32838 - "POST /mcp HTTP/1.1" 200 OK
 INFO:     127.0.0.1:45586 - "POST /mcp HTTP/1.1" 200 OK
 INFO:     127.0.0.1:45600 - "POST /mcp HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'simple_mcp.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [26636]
+INFO:     Started server process [31554]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
