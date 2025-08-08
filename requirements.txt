@@ -1,0 +1,10 @@
+# MVP Medical MCP Server - Simplified Dependencies
+fastapi==0.104.1
+uvicorn==0.24.0
+python-dotenv==1.0.0
+requests==2.31.0
+
+# For Google Places API (chemist finder)
+googlemaps==4.10.0
+
+# No complex dependencies that need compilation

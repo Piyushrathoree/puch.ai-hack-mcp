@@ -1,24 +1,26 @@
-# 🏥 Medical Assistant MCP Server
+# 🏥 Medical Assistant MCP Server - MVP
 
-> **A Medical First-Aid MCP Server for Puch.ai Hackathon**  
-> Connect AI assistants to medical knowledge for safe triage, OTC suggestions, home remedies, and chemist locations
+> **A Simple Medical First-Aid MCP Server for Puch.ai Hackathon**  
+> MVP: Connect Puch.ai to basic medical guidance with symptom triage and OTC suggestions
 
-[![MCP](https://img.shields.io/badge/MCP-Model%20Context%20Protocol-blue)](https://modelcontextprotocol.io/)
+[![MCP](https://img.shields.io/badge/MCP-MVP%20Build-orange)](https://modelcontextprotocol.io/)
 [![Python](https://img.shields.io/badge/Python-3.8+-green)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-red)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Simple-red)](https://fastapi.tiangolo.com/)
 
 ---
 
-## 🎯 **Project Overview**
+## 🎯 **MVP Scope (30+ Hours Remaining)**
 
-This MCP (Model Context Protocol) server enables AI assistants to provide **safe medical guidance** including:
+This MVP MCP server provides **basic medical assistance** through Puch.ai with:
 
--   ✅ **Symptom triage** (Self-care / See doctor / Emergency)
--   💊 **OTC medicine suggestions** with safe dosages
--   🏠 **Home remedies** with YouTube video links
--   🏪 **Nearest chemist/pharmacy locations**
--   📝 **Structured EMR logging** with consent management
--   🚨 **Emergency escalation** for serious symptoms
+-   ✅ **Simple symptom analysis** (basic triage logic)
+-   💊 **Safe OTC suggestions** (paracetamol, basic medicines)
+-   🏠 **Basic home remedies** (hardcoded safe suggestions)
+-   🌍 **Chemist location** (Google Places integration)
+-   📝 **Basic logging** (simple JSON storage)
+-   ⚠️ **Safety disclaimers** (always present)
+
+**🚀 MVP Goal**: Get a working demo connecting Puch.ai to medical MCP tools within 30 hours!
 
 ### ⚠️ **Important Medical Disclaimer**
 
@@ -27,153 +29,144 @@ This MCP (Model Context Protocol) server enables AI assistants to provide **safe
 
 ---
 
-## 🏗️ **Architecture Overview**
+## 🏗️ **Simple MVP Architecture**
 
 ```mermaid
 graph TD
     A[User via WhatsApp] --> B[Puch.ai Platform]
     B --> C[Medical MCP Server]
-    C --> D[Symptom Parser]
-    C --> E[Clinical Knowledge Module]
-    C --> F[Location Service]
-    C --> G[Image Handler]
-    C --> H[EMR Logger]
+    C --> D[Simple Symptom Parser]
+    C --> E[Basic Medical Logic]
+    C --> F[Google Places API]
+    C --> G[JSON File Storage]
 
-    D --> I[Safety Rules Engine]
-    E --> J[LLM + Medical Prompts]
-    F --> K[Google Places API]
-    G --> L[Image Storage]
-    H --> M[MongoDB/JSON Storage]
+    D --> H[Hardcoded Safety Rules]
+    E --> I[Static Medical Data]
+    F --> J[Chemist Locations]
+    G --> K[Session Logs]
 
-    I --> N[Emergency Alert]
-    J --> O[Response Formatter]
-    K --> P[Chemist Locations]
-
-    O --> Q[WhatsApp Response]
-    N --> R[Doctor/Admin Alert]
+    C --> L[Simple Response Formatter]
+    L --> M[WhatsApp Response via Puch.ai]
 ```
 
----
-
-## 🛠️ **Tech Stack**
-
-| Component    | Technology         | Purpose                    |
-| ------------ | ------------------ | -------------------------- |
-| **Server**   | Python + FastAPI   | MCP Server Implementation  |
-| **Database** | MongoDB/SQLite     | EMR & Session Storage      |
-| **NLU**      | spaCy + Regex      | Symptom Extraction         |
-| **LLM**      | Azure OpenAI/Local | Medical Knowledge & Triage |
-| **Maps**     | Google Places API  | Chemist Location           |
-| **Storage**  | Local/S3           | Image & File Storage       |
-| **Protocol** | MCP (JSON-RPC)     | AI Integration Standard    |
+**MVP Focus**: Keep it simple, get it working, then iterate!
 
 ---
 
-## ⚡ **Quick Start (5 Minutes)**
+## 🛠️ **Simple MVP Tech Stack**
 
-### 1️⃣ **Clone & Setup**
+| Component      | Technology       | Purpose                | Complexity |
+| -------------- | ---------------- | ---------------------- | ---------- |
+| **Server**     | Python + FastAPI | MCP Server             | ⭐⭐       |
+| **Storage**    | JSON Files       | Simple session logging | ⭐         |
+| **Medical AI** | Hardcoded Rules  | Basic symptom analysis | ⭐         |
+| **Maps**       | Google Places    | Find nearby chemists   | ⭐⭐       |
+| **Protocol**   | MCP (JSON-RPC)   | Connect to Puch.ai     | ⭐⭐⭐     |
+| **Safety**     | Static Rules     | Emergency detection    | ⭐         |
+
+**🎯 MVP Strategy**: Start with ⭐ complexity, add ⭐⭐ features, skip ⭐⭐⭐ for now
+
+---
+
+## ⚡ **MVP Quick Start (15 Minutes)**
+
+### 1️⃣ **Setup Project**
 
 ```bash
-git clone https://github.com/your-username/medical-mcp-server.git
-cd medical-mcp-server
+# Create project directory
+mkdir medical-mcp-mvp && cd medical-mcp-mvp
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Install dependencies
+# Create basic structure
+mkdir src data tests
+touch src/main.py src/config.py .env
+```
+
+### 2️⃣ **Install Basic Dependencies**
+
+```bash
+# Create requirements.txt with MVP essentials
+cat > requirements.txt << EOF
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+mcp==1.0.0
+googlemaps==4.10.0
+python-dotenv==1.0.0
+pydantic==2.5.0
+EOF
+
+# Install
 pip install -r requirements.txt
 ```
 
-### 2️⃣ **Environment Configuration**
+### 3️⃣ **Basic Configuration**
 
 ```bash
-cp .env.example .env
-# Edit .env with your API keys:
-# - GOOGLE_PLACES_API_KEY=your_key
-# - OPENAI_API_KEY=your_key (optional)
-# - MONGODB_URI=mongodb://localhost:27017 (optional)
+# Create .env file
+echo "GOOGLE_PLACES_API_KEY=your_key_here" > .env
+echo "DEBUG=true" >> .env
+echo "PORT=8000" >> .env
 ```
 
-### 3️⃣ **Run the Server**
+### 4️⃣ **Quick Test**
 
 ```bash
-# Development mode
-python -m uvicorn src.main:app --reload --port 8000
+# Start with a simple "Hello MCP" server first
+python src/main.py
 
-# Test the server
-curl -X POST http://localhost:8000/health
+# Test basic connectivity
+curl http://localhost:8000/health
 ```
 
-### 4️⃣ **Connect to Puch.ai**
-
-```json
-// In your Puch.ai MCP configuration
-{
-    "medical_assistant": {
-        "type": "http",
-        "url": "http://localhost:8000/mcp",
-        "headers": {
-            "Authorization": "Bearer your-token"
-        }
-    }
-}
-```
+**⏰ Next**: Create the basic MCP tools (see implementation steps below)
 
 ---
 
-## 📁 **Project Structure**
+## 📁 **Simple MVP Structure**
 
 ```
-medical-mcp-server/
-├── 📄 README.md                    # This file
-├── 📄 requirements.txt             # Python dependencies
-├── 📄 .env.example                 # Environment template
-├── 📄 docker-compose.yml           # Local development
+medical-mcp-mvp/
+├── 📄 README.md                    # This guide
+├── 📄 requirements.txt             # Essential dependencies only
+├── 📄 .env                         # API keys
 ├── 📁 src/
-│   ├── 📄 main.py                  # FastAPI MCP Server
-│   ├── 📄 medical_tools.py         # Medical MCP Tools
-│   ├── 📄 symptom_parser.py        # NLU & Symptom Extraction
-│   ├── 📄 clinical_knowledge.py    # Medical Logic & LLM
-│   ├── 📄 location_service.py      # Chemist Finder
-│   ├── 📄 safety_rules.py          # Red Flag Detection
-│   ├── 📄 emr_logger.py            # Patient Data Storage
-│   └── 📄 config.py                # Settings & Constants
-├── 📁 tests/
-│   ├── 📄 test_medical_tools.py    # Unit Tests
-│   └── 📄 test_safety_rules.py     # Safety Testing
+│   ├── 📄 main.py                  # Main MCP server (start here!)
+│   ├── 📄 config.py                # Basic settings
+│   └── 📄 medical_data.py          # Hardcoded medical data
 ├── 📁 data/
-│   ├── 📄 otc_medicines.json       # Safe Medicine Database
-│   ├── 📄 home_remedies.json       # Remedy Templates
-│   └── 📄 red_flags.json           # Emergency Symptoms
-└── 📁 docs/
-    ├── 📄 API.md                   # API Documentation
-    ├── 📄 SAFETY.md                # Medical Safety Guidelines
-    └── 📄 DEPLOYMENT.md             # Production Setup
+│   ├── 📄 medicines.json           # Simple OTC medicine list
+│   ├── 📄 remedies.json            # Basic home remedies
+│   └── 📄 sessions.json            # User session logs
+└── 📁 tests/
+    └── 📄 test_basic.py            # Essential tests only
 ```
+
+**🎯 Start with just `main.py` and `config.py` → Add others as needed**
 
 ---
 
-## 🔧 **MCP Tools Available**
+## 🔧 **MVP Tools (Priority Order)**
 
-### 🩺 **Medical Tools**
+### 🎯 **Phase 1: Core Tools (Must Have)**
 
-| Tool                    | Description                   | Example Usage              |
-| ----------------------- | ----------------------------- | -------------------------- |
-| `analyze_symptoms`      | Parse symptoms → triage level | "fever, headache, 2 days"  |
-| `suggest_otc_medicine`  | Safe OTC recommendations      | "pain relief for headache" |
-| `get_home_remedies`     | Natural remedies + YouTube    | "cold and cough remedies"  |
-| `find_nearby_chemists`  | Locate pharmacies             | "chemists near me"         |
-| `check_emergency_signs` | Red flag detection            | "difficulty breathing"     |
-| `log_consultation`      | Save EMR with consent         | Patient session logging    |
+| Tool               | Description             | Complexity | Time Est. |
+| ------------------ | ----------------------- | ---------- | --------- |
+| `analyze_symptoms` | Basic symptom → triage  | ⭐         | 2 hours   |
+| `suggest_medicine` | Simple OTC suggestions  | ⭐         | 1 hour    |
+| `get_remedies`     | Hardcoded home remedies | ⭐         | 30 mins   |
 
-### 📊 **Data Resources**
+### 🎯 **Phase 2: Enhanced Tools (Nice to Have)**
 
-| Resource            | Description            | Format                     |
-| ------------------- | ---------------------- | -------------------------- |
-| `patient_history`   | Previous consultations | JSON EMR                   |
-| `medicine_database` | OTC drug information   | Structured data            |
-| `remedy_library`    | Home treatments        | Video links + instructions |
+| Tool              | Description               | Complexity | Time Est. |
+| ----------------- | ------------------------- | ---------- | --------- |
+| `find_chemists`   | Google Places integration | ⭐⭐       | 3 hours   |
+| `emergency_check` | Red flag detection        | ⭐⭐       | 2 hours   |
+| `log_session`     | Simple JSON logging       | ⭐         | 1 hour    |
+
+**🚀 Start with Phase 1, add Phase 2 if time permits**
 
 ---
 
@@ -272,70 +265,89 @@ medical-mcp-server/
 
 ---
 
-## 🚀 **40-Hour Hackathon Roadmap**
+## 🚀 **30+ Hour MVP Sprint Plan**
 
-### **Day 1 (20 hours)**
+### **Phase 1: Foundation (8 hours)**
 
--   [x] **Hours 1-4**: Setup project structure + basic MCP server
--   [x] **Hours 5-8**: Implement symptom parser + safety rules
--   [x] **Hours 9-12**: Clinical knowledge module + LLM integration
--   [x] **Hours 13-16**: EMR logging + consent flow
--   [x] **Hours 17-20**: Basic testing + MVP demo
+-   [ ] **Hours 1-2**: Setup project + basic FastAPI server
+-   [ ] **Hours 3-4**: Create simple MCP structure + health endpoint
+-   [ ] **Hours 5-6**: Implement basic symptom analysis tool
+-   [ ] **Hours 7-8**: Add OTC medicine suggestion tool
 
-### **Day 2 (20 hours)**
+### **Phase 2: Core Features (10 hours)**
 
--   [ ] **Hours 21-24**: Google Places API + chemist finder
--   [ ] **Hours 25-28**: Response formatter + WhatsApp integration
--   [ ] **Hours 29-32**: Image handling + basic triage
--   [ ] **Hours 33-36**: Load testing + performance optimization
--   [ ] **Hours 37-40**: Final polish + presentation prep
+-   [ ] **Hours 9-11**: Add home remedies tool with static data
+-   [ ] **Hours 12-14**: Integrate Google Places for chemist search
+-   [ ] **Hours 15-16**: Basic emergency detection (red flags)
+-   [ ] **Hours 17-18**: Simple session logging
+
+### **Phase 3: Integration (8 hours)**
+
+-   [ ] **Hours 19-22**: Connect to Puch.ai MCP interface
+-   [ ] **Hours 23-24**: Test with WhatsApp integration
+-   [ ] **Hours 25-26**: Add safety disclaimers and error handling
+
+### **Phase 4: Polish & Demo (6+ hours)**
+
+-   [ ] **Hours 27-29**: Fix bugs, improve responses
+-   [ ] **Hours 30-32**: Create demo script and test flows
+-   [ ] **Hours 33+**: Record demo, prepare submission
+
+**⚡ MVP Success = Working Puch.ai connection + 3 basic medical tools**
 
 ---
 
-## 🧪 **Testing**
+## 🧪 **MVP Testing Strategy**
+
+### **Quick Manual Tests**
 
 ```bash
-# Run all tests
-pytest tests/ -v
+# Test server health
+curl http://localhost:8000/health
 
-# Test specific components
-pytest tests/test_safety_rules.py -v
-pytest tests/test_medical_tools.py -v
+# Test basic MCP tool
+curl -X POST http://localhost:8000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"method": "analyze_symptoms", "params": {"symptoms": "fever headache"}}'
 
-# Load testing (simulate 100 concurrent users)
-python scripts/load_test.py
+# Test Puch.ai integration
+# (Use Puch.ai test interface)
 ```
 
-### **Safety Test Cases**
+### **Essential Safety Checks**
 
--   [ ] Red flag symptoms trigger emergency response
--   [ ] OTC suggestions never include prescription drugs
--   [ ] Dosage recommendations include age restrictions
--   [ ] All medical advice includes disclaimers
+-   [ ] Emergency keywords trigger safety warnings
+-   [ ] Only safe OTC medicines are suggested
+-   [ ] All responses include medical disclaimers
+-   [ ] No prescription drugs in suggestions
 
----
-
-## 📈 **Metrics for Puch.ai Leaderboard**
-
-| Metric                     | Target        | Current |
-| -------------------------- | ------------- | ------- |
-| **Queries served/hour**    | 1000+         | -       |
-| **Automated triage %**     | 80%+          | -       |
-| **Chemist click-throughs** | 60%+          | -       |
-| **Emergency escalations**  | 100% accuracy | -       |
-| **User satisfaction**      | 4.5/5         | -       |
-| **Response time**          | <3s           | -       |
+**🎯 Focus on functional testing, skip complex unit tests for MVP**
 
 ---
 
-## 🌐 **API Endpoints**
+## 📈 **MVP Success Metrics**
 
-| Endpoint          | Method | Description          |
-| ----------------- | ------ | -------------------- |
-| `/health`         | GET    | Server health check  |
-| `/mcp`            | POST   | Main MCP interface   |
-| `/metrics`        | GET    | Performance metrics  |
-| `/admin/sessions` | GET    | EMR sessions (admin) |
+| Metric                | MVP Target             | Measurement   |
+| --------------------- | ---------------------- | ------------- |
+| **Demo Works**        | ✅ Basic tools respond | Manual test   |
+| **Puch.ai Connected** | ✅ MCP integration     | Live demo     |
+| **Safety First**      | ✅ Disclaimers present | Code review   |
+| **Response Time**     | <5s                    | Basic timing  |
+| **Core Features**     | 3+ working tools       | Feature count |
+
+**🎯 MVP Goal: Functional demo > Perfect metrics**
+
+---
+
+## 🌐 **MVP API Endpoints**
+
+| Endpoint  | Method | Description             | Priority |
+| --------- | ------ | ----------------------- | -------- |
+| `/health` | GET    | Basic health check      | ⭐⭐⭐   |
+| `/mcp`    | POST   | Main MCP tool interface | ⭐⭐⭐   |
+| `/test`   | GET    | Quick test page         | ⭐⭐     |
+
+**🎯 Start with just `/health` and `/mcp` - that's all you need!**
 
 ---
 
@@ -373,17 +385,32 @@ python scripts/load_test.py
 
 ---
 
-## 🏆 **Hackathon Submission**
+## 🏆 **MVP Submission Checklist**
+
+### **Demo Requirements**
+
+-   [ ] Server starts without errors
+-   [ ] Basic MCP tools respond correctly
+-   [ ] Puch.ai integration works
+-   [ ] Safety disclaimers are present
+-   [ ] Emergency detection functions
+
+### **Submission Package**
+
+-   [ ] Working code repository
+-   [ ] Basic README with setup instructions
+-   [ ] Demo video (2-3 minutes)
+-   [ ] Live demo URL (if hosted)
 
 **Team**: [Your Team Name]  
-**Submission**: [Puch.ai/hack submission link]  
-**Demo**: [Live demo URL]  
-**Video**: [YouTube demo video]
+**Repo**: `https://github.com/yourusername/medical-mcp-mvp`  
+**Demo**: [Record on Loom/YouTube]
 
-> Built with ❤️ for the Puch.ai Hackathon 2024  
-> Making AI-powered healthcare accessible to everyone
+> 🚀 Built in 30+ hours for Puch.ai Hackathon 2025  
+> MVP: Simple medical assistance through MCP
 
 ---
 
-**⭐ Star this repo if it helps you build amazing medical AI assistants!**
+**⭐ Good luck with your MVP! Focus on functionality over perfection!**
+
 # puch.ai-hack-mcp
