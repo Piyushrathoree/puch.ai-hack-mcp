@@ -1,0 +1,33 @@
+{
+  "name": "puch-mcp-server",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx src/server.ts",
+    "start:mcp": "node --enable-source-maps --no-warnings --loader tsx src/server.ts",
+    "start:http": "node --enable-source-maps --no-warnings --loader tsx src/http.ts",
+    "build": "tsc -p ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.17.2",
+    "@mozilla/readability": "0.6.0",
+    "express": "5.1.0",
+    "jsdom": "26.1.0",
+    "p-limit": "6.2.0",
+    "rss-parser": "3.13.0",
+    "zod": "3.25.76"
+  },
+  "description": "",
+  "devDependencies": {
+    "@types/express": "5.0.3",
+    "@types/jsdom": "21.1.7",
+    "@types/node": "24.2.1",
+    "tsx": "4.20.3",
+    "typescript": "5.9.2"
+  }
+}
