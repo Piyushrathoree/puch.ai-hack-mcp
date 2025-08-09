@@ -1,0 +1,26 @@
+{
+  "name": "medical-mcp-server",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx src/server.ts",
+    "start:mcp": "node --enable-source-maps --no-warnings --loader tsx src/server.ts",
+    "build": "tsc -p ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.17.2",
+    "p-limit": "6.2.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "24.2.1",
+    "tsx": "4.20.3",
+    "typescript": "5.9.2"
+  }
+}
