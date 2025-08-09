@@ -2,9 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-// MVP: single tool that takes a short symptom input and returns a comprehensive response
-// by constructing a richer prompt and calling an LLM via OpenAI-compatible API.
-
 const OpenAIModel = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const OpenAIBaseUrl = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 const OpenAIApiKey = process.env.OPENAI_API_KEY || "";
@@ -16,30 +13,59 @@ if (!OpenAIApiKey) {
 
 const ToolInput = z.object({
   query: z.string().min(1, "query is required"),
-  userLocation: z
-    .object({ lat: z.number(), lon: z.number() })
-    .optional()
+  userLocation: z.object({ lat: z.number(), lon: z.number() }).optional(),
 });
 
 type ToolInputType = z.infer<typeof ToolInput>;
 
-function buildPrompt({ query, userLocation }: ToolInputType): string {
-  const locationText = userLocation
-    ? `User location (approx): lat=${userLocation.lat}, lon=${userLocation.lon}.`
-    : "User location not provided.";
+type Chemist = { name: string; address: string; map_url: string };
 
+type VideoItem = { url: string; embed_url: string };
+
+type OutputPayload = {
+  intent: string;
+  otc_medicines: { name: string; dosage_guidance: string; cautions: string }[];
+  nearby_chemists: Chemist[];
+  home_remedies: { title: string; rationale: string }[];
+  videos: VideoItem[];
+  red_flags: string[];
+  disclaimers: string[];
+};
+
+function youtubeEmbedUrl(rawUrl: string): string {
+  try {
+    const url = new URL(rawUrl);
+    let id = "";
+    if (url.hostname.includes("youtu.be")) {
+      id = url.pathname.replace(/^\//, "");
+    } else if (url.hostname.includes("youtube.com")) {
+      if (url.pathname.startsWith("/watch")) {
+        id = url.searchParams.get("v") || "";
+      } else if (url.pathname.startsWith("/embed/")) {
+        id = url.pathname.split("/").pop() || "";
+      } else if (url.pathname.startsWith("/shorts/")) {
+        id = url.pathname.split("/")[2] || "";
+      }
+    }
+    if (!id) return rawUrl;
+    return `https://www.youtube.com/embed/${id}`;
+  } catch {
+    return rawUrl;
+  }
+}
+
+function buildPrompt({ query }: ToolInputType): string {
   return (
     `You are a cautious, helpful medical assistant. Expand on the user's message and return ALL of the following sections as JSON.
 
 Input: "${query}"
-${locationText}
 
 Requirements:
 1) Clarify the user intent from the symptom(s).
 2) Suggest over-the-counter medicine options (if appropriate), with generic names and typical dosage guidance. Include cautions and when NOT to take.
-3) List nearest 5 chemist/medical stores based on the provided location (if location is available). If not available, output an empty array and a note that location was not provided. Each item should have: name, address (if unknown, use empty string), and a placeholder map link.
+3) The server will supply nearby chemists separately; set "nearby_chemists" to an empty array.
 4) Suggest 3-5 home remedies with short rationales.
-5) Provide 3-5 YouTube video links relevant to home remedies or general guidance (do not embed, just direct URLs).
+5) Provide 3-5 YouTube video links relevant to home remedies or general guidance; return as array of objects with a "url" field only (the server will build embed URLs).
 6) Add red flags: list symptoms that require immediate medical attention.
 7) Disclaimers: not a substitute for professional medical advice; consult a healthcare professional.
 
@@ -47,9 +73,9 @@ Return a single JSON object with exactly these keys:
 {
   "intent": string,
   "otc_medicines": [{ "name": string, "dosage_guidance": string, "cautions": string }],
-  "nearby_chemists": [{ "name": string, "address": string, "map_url": string }],
+  "nearby_chemists": [],
   "home_remedies": [{ "title": string, "rationale": string }],
-  "videos": [string],
+  "videos": [{ "url": string }],
   "red_flags": [string],
   "disclaimers": [string]
 }
@@ -68,11 +94,11 @@ async function callOpenAI(prompt: string): Promise<any> {
       model: OpenAIModel,
       messages: [
         { role: "system", content: "You are a careful medical assistant. Always return valid JSON only." },
-        { role: "user", content: prompt }
+        { role: "user", content: prompt },
       ],
       temperature: 0.2,
-      response_format: { type: "json_object" }
-    })
+      response_format: { type: "json_object" },
+    }),
   });
 
   if (!resp.ok) {
@@ -82,6 +108,92 @@ async function callOpenAI(prompt: string): Promise<any> {
   const data = await resp.json();
   const text = data.choices?.[0]?.message?.content ?? "";
   return JSON.parse(text);
+}
+
+function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const R = 6371000;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+async function findNearbyChemists(lat: number, lon: number, limit = 5): Promise<Chemist[]> {
+  const radiusMeters = 3000;
+  const query = `
+[out:json][timeout:10];
+(
+  node["amenity"="pharmacy"](around:${radiusMeters},${lat},${lon});
+  way["amenity"="pharmacy"](around:${radiusMeters},${lat},${lon});
+  relation["amenity"="pharmacy"](around:${radiusMeters},${lat},${lon});
+);
+out center tags;`;
+
+  const resp = await fetch("https://overpass-api.de/api/interpreter", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ data: query }),
+  });
+  if (!resp.ok) {
+    return [];
+  }
+  const data = await resp.json();
+  const elements: any[] = data.elements || [];
+  const withCoords = elements
+    .map((el) => {
+      const center = el.center || (el.lat && el.lon ? { lat: el.lat, lon: el.lon } : undefined);
+      if (!center) return undefined;
+      const tags = el.tags || {};
+      const name: string = tags.name || "Pharmacy";
+      const addressParts = [tags["addr:housenumber"], tags["addr:street"], tags["addr:city"], tags["addr:postcode"]].filter(Boolean);
+      const address = addressParts.join(", ");
+      const dist = haversineMeters(lat, lon, center.lat, center.lon);
+      const map_url = `https://www.openstreetmap.org/?mlat=${center.lat}&mlon=${center.lon}#map=18/${center.lat}/${center.lon}`;
+      return { name, address, map_url, dist } as Chemist & { dist: number };
+    })
+    .filter(Boolean) as (Chemist & { dist: number })[];
+
+  withCoords.sort((a, b) => a.dist - b.dist);
+  return withCoords.slice(0, limit).map(({ name, address, map_url }) => ({ name, address, map_url }));
+}
+
+function normalizeVideos(v: any): VideoItem[] {
+  if (!Array.isArray(v)) return [];
+  const items: VideoItem[] = [];
+  for (const item of v) {
+    if (typeof item === "string") {
+      items.push({ url: item, embed_url: youtubeEmbedUrl(item) });
+    } else if (item && typeof item.url === "string") {
+      items.push({ url: item.url, embed_url: youtubeEmbedUrl(item.url) });
+    }
+  }
+  return items.slice(0, 5);
+}
+
+function coerceOutput(modelObj: any): OutputPayload {
+  const payload: OutputPayload = {
+    intent: typeof modelObj?.intent === "string" ? modelObj.intent : "",
+    otc_medicines: Array.isArray(modelObj?.otc_medicines)
+      ? modelObj.otc_medicines.map((m: any) => ({
+          name: String(m?.name || ""),
+          dosage_guidance: String(m?.dosage_guidance || ""),
+          cautions: String(m?.cautions || ""),
+        }))
+      : [],
+    nearby_chemists: Array.isArray(modelObj?.nearby_chemists) ? [] : [], // will be filled later if coords provided
+    home_remedies: Array.isArray(modelObj?.home_remedies)
+      ? modelObj.home_remedies.map((h: any) => ({
+          title: String(h?.title || ""),
+          rationale: String(h?.rationale || ""),
+        }))
+      : [],
+    videos: normalizeVideos(modelObj?.videos),
+    red_flags: Array.isArray(modelObj?.red_flags) ? modelObj.red_flags.map((x: any) => String(x)) : [],
+    disclaimers: Array.isArray(modelObj?.disclaimers) ? modelObj.disclaimers.map((x: any) => String(x)) : [],
+  };
+  return payload;
 }
 
 async function main() {
@@ -95,17 +207,33 @@ async function main() {
     "medical_assist",
     {
       title: "Medical Assistant",
-      description: "Takes a short symptom input and returns structured advice, OTC suggestions, chemists, home remedies, and videos.",
+      description:
+        "Takes a short symptom input and returns structured advice, OTC suggestions, nearby chemists (limit 5), home remedies, and YouTube links with embeds.",
       inputSchema: {
         query: z.string().min(1),
-        userLocation: z.object({ lat: z.number(), lon: z.number() }).optional()
+        userLocation: z.object({ lat: z.number(), lon: z.number() }).optional(),
       },
     },
     async ({ query, userLocation }) => {
+      // Ask model for everything except nearby chemists
       const prompt = buildPrompt({ query, userLocation });
-      const result = await callOpenAI(prompt);
-      // Return as text content with the JSON result
-      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+      const modelObj = await callOpenAI(prompt);
+      let payload = coerceOutput(modelObj);
+
+      // Fill nearby chemists from Overpass if location provided
+      if (userLocation) {
+        try {
+          const list = await findNearbyChemists(userLocation.lat, userLocation.lon, 5);
+          payload.nearby_chemists = list;
+        } catch {
+          payload.nearby_chemists = [];
+        }
+      } else {
+        payload.nearby_chemists = [];
+      }
+
+      // Return only the specified keys
+      return { content: [{ type: "text", text: JSON.stringify(payload, null, 2) }] };
     }
   );
 
